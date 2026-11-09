@@ -13,7 +13,7 @@ import 'audit_history_screen.dart';
 import 'promotion_list_screen.dart';
 import 'staff_list_screen.dart';
 import 'store_settings_screen.dart';
-import '../../sales_report/screens/reports_screen.dart';
+import '../../sales_reports/screens/reports_screen.dart';
 import '../../sales_report/screens/return_approval_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -33,12 +33,12 @@ class DashboardScreen extends ConsumerWidget {
             as int;
     final orderCount =
         (await db.rawQuery(
-              'SELECT COUNT(*) as c FROM sales_orders WHERE status="completed"',
+          'SELECT COUNT(*) as c FROM sales_orders WHERE status=\'completed\'',
             )).first['c']
             as int;
     final totalRevenue =
         (await db.rawQuery(
-              'SELECT IFNULL(SUM(total), 0) as s FROM sales_orders WHERE status="completed"',
+          'SELECT IFNULL(SUM(total), 0) as s FROM sales_orders WHERE status=\'completed\'',
             )).first['s']
             as num;
     final lowStockCount =

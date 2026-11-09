@@ -115,13 +115,13 @@ final salesAnalyticsDataProvider = FutureProvider<Map<String, dynamic>>((
   final db = await DatabaseHelper.instance.database;
 
   final salesRes = await db.rawQuery(
-    'SELECT COUNT(*) as c, IFNULL(SUM(total), 0) as s FROM sales_orders WHERE status = "completed"',
+    'SELECT COUNT(*) as c, IFNULL(SUM(total), 0) as s FROM sales_orders WHERE status = \'completed\'',
   );
   final grossRevenue = (salesRes.first['s'] as num).toDouble();
   final completedOrders = (salesRes.first['c'] as num).toInt();
 
   final refundRes = await db.rawQuery(
-    'SELECT COUNT(*) as c, IFNULL(SUM(refund_total), 0) as s FROM sales_returns WHERE status = "approved"',
+    'SELECT COUNT(*) as c, IFNULL(SUM(refund_total), 0) as s FROM sales_returns WHERE status = \'approved\'',
   );
   final totalRefunds = (refundRes.first['s'] as num).toDouble();
   final returnCount = (refundRes.first['c'] as num).toInt();
