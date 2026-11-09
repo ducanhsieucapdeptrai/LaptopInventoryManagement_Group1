@@ -24,11 +24,11 @@ import '../features/master_data/screens/customer_form_screen.dart';
 import '../features/master_data/screens/customer_list_screen.dart';
 import '../features/master_data/screens/supplier_form_screen.dart';
 import '../features/master_data/screens/supplier_list_screen.dart';
-import '../features/sales_report/screens/create_sales_order_screen.dart';
-import '../features/sales_report/screens/order_list_screen.dart';
-import '../features/sales_report/screens/reports_screen.dart';
-import '../features/sales_report/screens/return_approval_screen.dart';
-import '../features/sales_report/screens/sales_return_request_screen.dart';
+import '../features/sales_reports/screens/create_sales_order_screen.dart';
+import '../features/sales_reports/screens/order_list_screen.dart';
+import '../features/sales_reports/screens/reports_screen.dart';
+import '../features/sales_reports/screens/return_approval_screen.dart';
+import '../features/sales_reports/screens/sales_return_request_screen.dart';
 
 class ShellScreen extends ConsumerStatefulWidget {
   const ShellScreen({super.key});
