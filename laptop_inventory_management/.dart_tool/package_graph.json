@@ -79,6 +79,11 @@
       "dependencies": []
     },
     {
+      "name": "cupertino_icons",
+      "version": "1.0.9",
+      "dependencies": []
+    },
+    {
       "name": "flutter",
       "version": "0.0.0",
       "dependencies": [
@@ -88,6 +93,75 @@
         "meta",
         "sky_engine",
         "vector_math"
+      ]
+    },
+    {
+      "name": "lints",
+      "version": "6.1.0",
+      "dependencies": []
+    },
+    {
+      "name": "stream_channel",
+      "version": "2.1.4",
+      "dependencies": [
+        "async"
+      ]
+    },
+    {
+      "name": "meta",
+      "version": "1.18.3",
+      "dependencies": []
+    },
+    {
+      "name": "collection",
+      "version": "1.19.1",
+      "dependencies": []
+    },
+    {
+      "name": "leak_tracker_flutter_testing",
+      "version": "3.0.10",
+      "dependencies": [
+        "flutter",
+        "leak_tracker",
+        "leak_tracker_testing",
+        "matcher",
+        "meta"
+      ]
+    },
+    {
+      "name": "vector_math",
+      "version": "2.4.0",
+      "dependencies": []
+    },
+    {
+      "name": "stack_trace",
+      "version": "1.12.2",
+      "dependencies": [
+        "path"
+      ]
+    },
+    {
+      "name": "clock",
+      "version": "1.1.3",
+      "dependencies": []
+    },
+    {
+      "name": "fake_async",
+      "version": "1.3.3",
+      "dependencies": [
+        "clock",
+        "collection"
+      ]
+    },
+    {
+      "name": "matcher",
+      "version": "0.12.20",
+      "dependencies": [
+        "async",
+        "meta",
+        "stack_trace",
+        "term_glyph",
+        "test_api"
       ]
     },
     {
@@ -104,48 +178,6 @@
         "string_scanner",
         "term_glyph"
       ]
-    },
-    {
-      "name": "stream_channel",
-      "version": "2.1.4",
-      "dependencies": [
-        "async"
-      ]
-    },
-    {
-      "name": "matcher",
-      "version": "0.12.20",
-      "dependencies": [
-        "async",
-        "meta",
-        "stack_trace",
-        "term_glyph",
-        "test_api"
-      ]
-    },
-    {
-      "name": "leak_tracker_flutter_testing",
-      "version": "3.0.10",
-      "dependencies": [
-        "flutter",
-        "leak_tracker",
-        "leak_tracker_testing",
-        "matcher",
-        "meta"
-      ]
-    },
-    {
-      "name": "fake_async",
-      "version": "1.3.3",
-      "dependencies": [
-        "clock",
-        "collection"
-      ]
-    },
-    {
-      "name": "collection",
-      "version": "1.19.1",
-      "dependencies": []
     },
     {
       "name": "sky_engine",
@@ -165,31 +197,12 @@
       "dependencies": []
     },
     {
-      "name": "cupertino_icons",
-      "version": "1.0.9",
-      "dependencies": []
-    },
-    {
-      "name": "lints",
-      "version": "6.1.0",
-      "dependencies": []
-    },
-    {
-      "name": "stack_trace",
-      "version": "1.12.2",
+      "name": "async",
+      "version": "2.13.1",
       "dependencies": [
-        "path"
+        "collection",
+        "meta"
       ]
-    },
-    {
-      "name": "meta",
-      "version": "1.19.0",
-      "dependencies": []
-    },
-    {
-      "name": "clock",
-      "version": "1.1.3",
-      "dependencies": []
     },
     {
       "name": "leak_tracker_testing",
@@ -217,12 +230,33 @@
       "dependencies": []
     },
     {
+      "name": "string_scanner",
+      "version": "1.4.1",
+      "dependencies": [
+        "source_span"
+      ]
+    },
+    {
+      "name": "source_span",
+      "version": "1.10.2",
+      "dependencies": [
+        "collection",
+        "path",
+        "term_glyph"
+      ]
+    },
+    {
       "name": "boolean_selector",
       "version": "2.1.2",
       "dependencies": [
         "source_span",
         "string_scanner"
       ]
+    },
+    {
+      "name": "vm_service",
+      "version": "15.4.0",
+      "dependencies": []
     },
     {
       "name": "path_provider",
@@ -302,19 +336,6 @@
       ]
     },
     {
-      "name": "vector_math",
-      "version": "2.4.4",
-      "dependencies": []
-    },
-    {
-      "name": "async",
-      "version": "2.13.1",
-      "dependencies": [
-        "collection",
-        "meta"
-      ]
-    },
-    {
       "name": "crypto",
       "version": "3.0.8",
       "dependencies": []
@@ -325,13 +346,6 @@
       "dependencies": [
         "collection",
         "meta"
-      ]
-    },
-    {
-      "name": "string_scanner",
-      "version": "1.4.1",
-      "dependencies": [
-        "source_span"
       ]
     },
     {
@@ -348,15 +362,6 @@
       "dependencies": []
     },
     {
-      "name": "source_span",
-      "version": "1.10.2",
-      "dependencies": [
-        "collection",
-        "path",
-        "term_glyph"
-      ]
-    },
-    {
       "name": "path_provider_foundation",
       "version": "2.6.0",
       "dependencies": [
@@ -367,16 +372,20 @@
       ]
     },
     {
+      "name": "logging",
+      "version": "1.3.0",
+      "dependencies": []
+    },
+    {
       "name": "ffi",
       "version": "2.2.0",
       "dependencies": []
     },
     {
-      "name": "xdg_directories",
-      "version": "1.1.0",
+      "name": "pub_semver",
+      "version": "2.2.1",
       "dependencies": [
-        "meta",
-        "path"
+        "collection"
       ]
     },
     {
@@ -387,8 +396,16 @@
       ]
     },
     {
+      "name": "xdg_directories",
+      "version": "1.1.0",
+      "dependencies": [
+        "meta",
+        "path"
+      ]
+    },
+    {
       "name": "objective_c",
-      "version": "9.6.3",
+      "version": "9.5.0",
       "dependencies": [
         "code_assets",
         "collection",
@@ -397,39 +414,6 @@
         "logging",
         "meta",
         "pub_semver"
-      ]
-    },
-    {
-      "name": "logging",
-      "version": "1.3.0",
-      "dependencies": []
-    },
-    {
-      "name": "code_assets",
-      "version": "2.2.0",
-      "dependencies": [
-        "collection",
-        "hooks",
-        "logging"
-      ]
-    },
-    {
-      "name": "hooks",
-      "version": "2.2.0",
-      "dependencies": [
-        "collection",
-        "crypto",
-        "logging",
-        "pub_semver",
-        "record_use",
-        "yaml"
-      ]
-    },
-    {
-      "name": "pub_semver",
-      "version": "2.2.1",
-      "dependencies": [
-        "collection"
       ]
     },
     {
@@ -442,8 +426,29 @@
       ]
     },
     {
+      "name": "code_assets",
+      "version": "1.2.1",
+      "dependencies": [
+        "collection",
+        "hooks"
+      ]
+    },
+    {
+      "name": "hooks",
+      "version": "2.0.2",
+      "dependencies": [
+        "collection",
+        "crypto",
+        "logging",
+        "meta",
+        "pub_semver",
+        "record_use",
+        "yaml"
+      ]
+    },
+    {
       "name": "record_use",
-      "version": "1.1.1",
+      "version": "0.6.0",
       "dependencies": [
         "collection",
         "meta",
@@ -559,11 +564,6 @@
       "dependencies": []
     },
     {
-      "name": "vm_service",
-      "version": "15.4.0",
-      "dependencies": []
-    },
-    {
       "name": "path_provider_android",
       "version": "2.3.1",
       "dependencies": [
@@ -627,7 +627,7 @@
     },
     {
       "name": "sqlite3",
-      "version": "3.9.0",
+      "version": "3.5.2",
       "dependencies": [
         "code_assets",
         "collection",
@@ -642,17 +642,14 @@
       ]
     },
     {
-      "name": "native_toolchain_c",
-      "version": "0.19.6",
+      "name": "glob",
+      "version": "2.2.0",
       "dependencies": [
-        "code_assets",
+        "async",
+        "collection",
         "file",
-        "glob",
-        "hooks",
-        "logging",
-        "meta",
-        "process",
-        "pub_semver"
+        "path",
+        "string_scanner"
       ]
     },
     {
@@ -664,23 +661,15 @@
       ]
     },
     {
-      "name": "process",
-      "version": "5.0.6",
+      "name": "native_toolchain_c",
+      "version": "0.19.2",
       "dependencies": [
-        "file",
-        "path",
-        "platform"
-      ]
-    },
-    {
-      "name": "glob",
-      "version": "2.2.0",
-      "dependencies": [
-        "async",
-        "collection",
-        "file",
-        "path",
-        "string_scanner"
+        "code_assets",
+        "glob",
+        "hooks",
+        "logging",
+        "meta",
+        "pub_semver"
       ]
     }
   ],

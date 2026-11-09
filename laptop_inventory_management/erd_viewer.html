@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Laptop Inventory Management - ERD Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #1e1e1e;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #333;
+    }
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #61dafb;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #005999;
+    }
+    #diagram-container {
+      background: #181818;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Laptop Inventory Management - ERD Diagram</h1>
+    <div class="btn-group">
+      <button onclick="downloadPNG()">📥 Tải ảnh PNG (Chất lượng cao)</button>
+      <button onclick="downloadSVG()">📥 Tải file SVG (Vector)</button>
+    </div>
+  </div>
+
+  <div id="diagram-container">
+    <pre class="mermaid">
+erDiagram
+    APP_USERS ||--o{ STOCK_RECEIPTS : "created_by"
+    APP_USERS ||--o{ STOCK_MOVEMENTS : "created_by"
+    APP_USERS ||--o{ SALES_ORDERS : "created_by"
+    APP_USERS |o--o{ SALES_RETURNS : "approved_by"
+    APP_USERS |o--o{ AUDIT_LOGS : "logs"
+
+    CATEGORIES ||--o{ PRODUCTS : "categorizes"
+    
+    SUPPLIERS ||--o{ STOCK_RECEIPTS : "supplies"
+    STOCK_RECEIPTS ||--|{ STOCK_RECEIPT_ITEMS : "contains"
+    PRODUCTS ||--o{ STOCK_RECEIPT_ITEMS : "stocked_in"
+    PRODUCTS ||--o{ STOCK_MOVEMENTS : "records_movement"
+
+    CUSTOMERS |o--o{ SALES_ORDERS : "places"
+    SALES_ORDERS ||--|{ SALES_ORDER_ITEMS : "contains"
+    PRODUCTS ||--o{ SALES_ORDER_ITEMS : "ordered_in"
+    SALES_ORDERS ||--o{ PAYMENTS : "paid_by"
+    SALES_ORDERS ||--o{ SALES_RETURNS : "returned_from"
+
+    SALES_RETURNS ||--|{ SALES_RETURN_ITEMS : "contains"
+    SALES_ORDER_ITEMS ||--o{ SALES_RETURN_ITEMS : "targets_item"
+
+    APP_USERS {
+        TEXT user_id PK
+        TEXT username
+        TEXT password_hash
+        TEXT role
+        TEXT full_name
+        INTEGER is_active
+        TEXT created_at
+    }
+
+    CATEGORIES {
+        TEXT category_id PK
+        TEXT name
+        TEXT description
+        INTEGER is_active
+    }
+
+    PRODUCTS {
+        TEXT product_id PK
+        TEXT category_id FK
+        TEXT sku
+        TEXT name
+        TEXT brand
+        TEXT specs
+        REAL price
+        REAL cost
+        INTEGER stock
+        INTEGER alert_threshold
+        INTEGER is_active
+    }
+
+    SUPPLIERS {
+        TEXT supplier_id PK
+        TEXT name
+        TEXT phone
+        TEXT email
+        TEXT address
+        INTEGER is_active
+    }
+
+    STOCK_RECEIPTS {
+        TEXT receipt_id PK
+        TEXT supplier_id FK
+        TEXT created_by FK
+        TEXT status
+        TEXT received_at
+        REAL total_cost
+        TEXT notes
+    }
+
+    STOCK_RECEIPT_ITEMS {
+        TEXT receipt_item_id PK
+        TEXT receipt_id FK
+        TEXT product_id FK
+        INTEGER qty
+        REAL unit_cost
+    }
+
+    STOCK_MOVEMENTS {
+        TEXT movement_id PK
+        TEXT product_id FK
+        TEXT created_by FK
+        TEXT type
+        INTEGER qty_delta
+        TEXT ref
+        TEXT created_at
+    }
+
+    CUSTOMERS {
+        TEXT customer_id PK
+        TEXT name
+        TEXT phone
+        TEXT email
+        TEXT address
+        INTEGER total_orders
+        REAL total_spent
+    }
+
+    SALES_ORDERS {
+        TEXT order_id PK
+        TEXT customer_id FK
+        TEXT created_by FK
+        TEXT status
+        REAL subtotal
+        REAL discount_percent
+        REAL discount_amount
+        REAL total
+        REAL paid
+        TEXT notes
+        TEXT created_at
+    }
+
+    SALES_ORDER_ITEMS {
+        TEXT order_item_id PK
+        TEXT order_id FK
+        TEXT product_id FK
+        INTEGER qty
+        REAL price_snapshot
+        REAL cost_snapshot
+    }
+
+    PAYMENTS {
+        TEXT payment_id PK
+        TEXT order_id FK
+        TEXT method
+        REAL amount
+        TEXT status
+        TEXT ref_code
+        TEXT created_at
+    }
+
+    SALES_RETURNS {
+        TEXT return_id PK
+        TEXT order_id FK
+        TEXT approved_by FK
+        TEXT status
+        REAL refund_total
+        TEXT reason
+        TEXT created_at
+    }
+
+    SALES_RETURN_ITEMS {
+        TEXT return_item_id PK
+        TEXT return_id FK
+        TEXT order_item_id FK
+        INTEGER qty
+        INTEGER restockable
+        REAL refund_amount
+    }
+
+    AUDIT_LOGS {
+        TEXT audit_id PK
+        TEXT user_id FK
+        TEXT action
+        TEXT entity
+        TEXT details
+        TEXT created_at
+    }
+
+    STORE_SETTINGS {
+        TEXT id PK
+        TEXT store_name
+        TEXT tax_code
+        TEXT phone
+        TEXT email
+        TEXT address
+        REAL vat_percent
+        INTEGER default_warranty_months
+        TEXT invoice_footer
+        INTEGER low_stock_threshold
+    }
+
+    PROMOTIONS {
+        TEXT promo_id PK
+        TEXT code
+        TEXT title
+        REAL discount_percent
+        REAL discount_amount
+        REAL min_order_spend
+        INTEGER is_active
+        TEXT valid_until
+    }
+    </pre>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark'
+    });
+
+    function getSvgElement() {
+      return document.querySelector('#diagram-container svg');
+    }
+
+    function downloadSVG() {
+      const svg = getSvgElement();
+      if (!svg) return alert('Sơ đồ đang được render, vui lòng thử lại sau giây lát!');
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svg);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'laptop_inventory_erd.svg';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadPNG() {
+      const svg = getSvgElement();
+      if (!svg) return alert('Sơ đồ đang được render, vui lòng thử lại sau giây lát!');
+      
+      const bbox = svg.getBoundingClientRect();
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svg);
+      
+      const canvas = document.createElement('canvas');
+      const scale = 2; // Tăng gấp đôi độ phân giải để siêu nét
+      canvas.width = (bbox.width || 1600) * scale;
+      canvas.height = (bbox.height || 1000) * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#1e1e1e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'laptop_inventory_erd.png';
+        a.click();
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
+    }
+  </script>
+</body>
+</html>

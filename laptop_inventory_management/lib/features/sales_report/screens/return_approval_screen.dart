@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/database/database_helper.dart';
 import '../../../core/models/sales_return.dart';
 import '../../../core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import '../../../core/widgets/drawer_menu_button.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/logout_button.dart';
 import '../../../core/widgets/status_badge.dart';
+import '../../administration/providers/administration_provider.dart';
 import '../providers/sales_reports_provider.dart';
 import 'sales_return_request_screen.dart';
 
@@ -20,7 +22,19 @@ class ReturnApprovalScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SalesReturn ret,
+    String adminUserId,
+    bool isAdmin,
   ) async {
+    if (!isAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(SystemMessages.msg13),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -69,7 +83,7 @@ class ReturnApprovalScreen extends ConsumerWidget {
                 'movement_id':
                     'mov_ret_${DateTime.now().millisecondsSinceEpoch}_$pId',
                 'product_id': pId,
-                'created_by': 'u_admin',
+                'created_by': adminUserId,
                 'type': 'return',
                 'qty_delta': it.qty,
                 'ref': 'Khách trả hàng #${ret.returnId} (Đơn #${ret.orderId})',
@@ -81,18 +95,18 @@ class ReturnApprovalScreen extends ConsumerWidget {
 
         await txn.update(
           'sales_returns',
-          {'status': 'approved', 'approved_by': 'u_admin'},
+          {'status': 'approved', 'approved_by': adminUserId},
           where: 'return_id = ?',
           whereArgs: [ret.returnId],
         );
 
         await txn.insert('audit_logs', {
           'audit_id': const Uuid().v4(),
-          'user_id': 'u_admin',
+          'user_id': adminUserId,
           'action': 'RETURN_APPROVED',
           'entity': 'SalesReturn',
           'details':
-              'Duyệt phiếu trả #${ret.returnId} - Hoàn tiền: ${ret.refundTotal} đ',
+              'Admin ($adminUserId) duyệt phiếu trả #${ret.returnId} - Hoàn tiền: ${ret.refundTotal} đ',
           'created_at': now,
         });
       });
@@ -120,11 +134,20 @@ class ReturnApprovalScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final returnsAsync = ref.watch(salesReturnsListProvider);
+    final user = ref.watch(currentUserProvider);
+    final activeWorkspace = ref.watch(activeWorkspaceProvider);
+    final bool isAdmin =
+        (user?.role == AppRoles.admin) || (activeWorkspace == 'ducanh');
+    final adminUserId = user?.userId ?? 'u_admin';
 
     return Scaffold(
       appBar: AppBar(
         leading: const DrawerMenuButton(),
-        title: const Text('Phê Duyệt Đổi Trả (Trương)'),
+        title: Text(
+          isAdmin
+              ? 'Phê Duyệt Đổi Trả & Hoàn Tiền (Admin FR-26)'
+              : 'Lịch Sử & Đề Xuất Đổi Trả (FR-24)',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -228,19 +251,59 @@ class ReturnApprovalScreen extends ConsumerWidget {
                       ),
                       if (ret.status == 'pending') ...[
                         const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.emeraldGreen,
+                        if (isAdmin)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.emeraldGreen,
+                              ),
+                              onPressed: () => _approveReturn(
+                                context,
+                                ref,
+                                ret,
+                                adminUserId,
+                                isAdmin,
+                              ),
+                              icon: const Icon(Icons.check_circle_outline),
+                              label: const Text(
+                                'Admin Duyệt & Hoàn Tiền (FR-26)',
+                              ),
                             ),
-                            onPressed: () => _approveReturn(context, ref, ret),
-                            icon: const Icon(Icons.check_circle_outline),
-                            label: const Text(
-                              'Admin Duyệt & Hoàn Tiền (FR-26)',
+                          )
+                        else
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade50,
+                              border: Border.all(color: Colors.amber.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.hourglass_top,
+                                  color: Colors.amber.shade800,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Đang chờ Quản trị viên (Admin) phê duyệt hoàn tiền (FR-26)',
+                                    style: TextStyle(
+                                      color: Colors.amber.shade900,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
                       ],
                     ],
                   ),
@@ -256,7 +319,9 @@ class ReturnApprovalScreen extends ConsumerWidget {
         backgroundColor: Colors.red.shade700,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.assignment_return),
-        label: const Text('Tạo Yêu Cầu Trả (FR-24)'),
+        label: Text(
+          isAdmin ? 'Tạo Phiếu Đổi Trả (FR-24)' : 'Tạo Đề Xuất Đổi Trả (FR-24)',
+        ),
         onPressed: () {
           Navigator.push(
             context,

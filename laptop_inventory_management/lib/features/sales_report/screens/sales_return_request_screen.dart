@@ -9,6 +9,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/drawer_menu_button.dart';
 import '../../../core/widgets/logout_button.dart';
+import '../../administration/providers/administration_provider.dart';
 import '../providers/sales_reports_provider.dart';
 import 'return_approval_screen.dart';
 
@@ -285,13 +286,14 @@ class _SalesReturnRequestScreenState
         }
 
         // Audit log
+        final currentUser = ref.read(currentUserProvider);
         await txn.insert('audit_logs', {
           'audit_id': 'aud_${DateTime.now().millisecondsSinceEpoch}',
-          'user_id': 'u_sales',
+          'user_id': currentUser?.userId ?? 'u_sales',
           'action': 'RETURN_REQUEST_CREATED',
           'entity': 'SalesReturn',
           'details':
-              'Tạo yêu cầu đổi trả #$returnId cho đơn #${_selectedOrder!.orderId}, tiền hoàn: $_totalRefund',
+              '${currentUser?.fullName ?? "Nhân viên"} tạo đề xuất đổi trả #$returnId cho đơn #${_selectedOrder!.orderId}, tiền hoàn: $_totalRefund',
           'created_at': now,
         });
       });

@@ -14,6 +14,7 @@ import 'promotion_list_screen.dart';
 import 'staff_list_screen.dart';
 import 'store_settings_screen.dart';
 import '../../sales_report/screens/reports_screen.dart';
+import '../../sales_report/screens/return_approval_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -45,6 +46,11 @@ class DashboardScreen extends ConsumerWidget {
               'SELECT COUNT(*) as c FROM products WHERE is_active=1 AND stock <= alert_threshold',
             )).first['c']
             as int;
+    final pendingReturnCount =
+        (await db.rawQuery(
+              'SELECT COUNT(*) as c FROM sales_returns WHERE status="pending"',
+            )).first['c']
+            as int;
 
     return {
       'users': userCount,
@@ -52,6 +58,7 @@ class DashboardScreen extends ConsumerWidget {
       'orders': orderCount,
       'revenue': totalRevenue.toDouble(),
       'low_stock': lowStockCount,
+      'pending_returns': pendingReturnCount,
     };
   }
 
@@ -198,6 +205,65 @@ class DashboardScreen extends ConsumerWidget {
               Card(
                 child: Column(
                   children: [
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor:
+                            (data['pending_returns'] as int? ?? 0) > 0
+                            ? const Color(0xFFFEE2E2)
+                            : const Color(0xFFDCFCE7),
+                        child: Icon(
+                          Icons.assignment_return,
+                          color: (data['pending_returns'] as int? ?? 0) > 0
+                              ? Colors.red
+                              : AppTheme.emeraldGreen,
+                        ),
+                      ),
+                      title: const Text(
+                        'Phê duyệt đổi trả & Hoàn tiền (FR-26)',
+                      ),
+                      subtitle: Text(
+                        (data['pending_returns'] as int? ?? 0) > 0
+                            ? 'Có ${data['pending_returns']} yêu cầu đổi trả đang chờ Admin duyệt!'
+                            : 'Duyệt hoàn tiền & tự động hoàn kho sản phẩm',
+                        style: TextStyle(
+                          color: (data['pending_returns'] as int? ?? 0) > 0
+                              ? Colors.red.shade700
+                              : null,
+                          fontWeight: (data['pending_returns'] as int? ?? 0) > 0
+                              ? FontWeight.bold
+                              : null,
+                        ),
+                      ),
+                      trailing: (data['pending_returns'] as int? ?? 0) > 0
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${data['pending_returns']} chờ',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ReturnApprovalScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
                     ListTile(
                       leading: const CircleAvatar(
                         backgroundColor: Color(0xFFDCFCE7),

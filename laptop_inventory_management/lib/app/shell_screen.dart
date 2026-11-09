@@ -38,12 +38,12 @@ class ShellScreen extends ConsumerStatefulWidget {
 }
 
 class _ShellScreenState extends ConsumerState<ShellScreen> {
-  int _currentIndex = 0;
+  void _setIndex(int idx) {
+    ref.read(shellTabIndexProvider.notifier).state = idx;
+  }
 
   void _switchWorkspace(String ws) {
-    setState(() {
-      _currentIndex = 0;
-    });
+    _setIndex(0);
     ref.read(activeWorkspaceProvider.notifier).state = ws;
   }
 
@@ -192,531 +192,556 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
         break;
     }
 
-    final safeIndex = _currentIndex < currentTabs.length ? _currentIndex : 0;
+    final currentIndex = ref.watch(shellTabIndexProvider);
+    final safeIndex = currentIndex < currentTabs.length ? currentIndex : 0;
 
-    return Scaffold(
-      key: shellScaffoldKey,
-      body: IndexedStack(index: safeIndex, children: currentTabs),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: themeColor),
-              otherAccountsPictures: [
-                IconButton(
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  tooltip: 'Đăng xuất tài khoản',
-                  onPressed: () {
+    return PopScope(
+      canPop: safeIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (safeIndex != 0) {
+          _setIndex(0);
+        }
+      },
+      child: Scaffold(
+        key: shellScaffoldKey,
+        body: IndexedStack(index: safeIndex, children: currentTabs),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: BoxDecoration(color: themeColor),
+                otherAccountsPictures: [
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    tooltip: 'Đăng xuất tài khoản',
+                    onPressed: () {
+                      Navigator.pop(context);
+                      showLogoutConfirmation(context, ref);
+                    },
+                  ),
+                ],
+                currentAccountPicture: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    ownerName.isNotEmpty ? ownerName.split(' ').last[0] : 'U',
+                    style: TextStyle(
+                      color: themeColor,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                accountName: Text(
+                  user?.fullName ?? ownerName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                accountEmail: Text(
+                  'Phân hệ: $workspaceTitle ($ownerName)',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ),
+
+              // Cloud BaaS alert preview
+              StreamBuilder<String>(
+                stream: FirebaseCloudService.instance.realTimeCloudAlerts,
+                builder: (ctx, snap) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.cloud_done,
+                          size: 18,
+                          color: AppTheme.accentCyan,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            snap.data ?? 'Hệ thống Cloud BaaS: Trực tuyến',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.primaryBlue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+
+              // Switcher for switching between member workspaces (Preview/Review)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'CHUYỂN PHÂN HỆ THÀNH VIÊN (REVIEW):',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        ChoiceChip(
+                          label: const Text(
+                            '1. Đức Anh',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                          selected: workspace == 'ducanh',
+                          onSelected: (val) {
+                            if (val) _switchWorkspace('ducanh');
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text(
+                            '2. Minh',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                          selected: workspace == 'minh',
+                          onSelected: (val) {
+                            if (val) _switchWorkspace('minh');
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text(
+                            '3. Trường',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                          selected: workspace == 'truong',
+                          onSelected: (val) {
+                            if (val) _switchWorkspace('truong');
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text(
+                            '4. Trương',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                          selected: workspace == 'sales',
+                          onSelected: (val) {
+                            if (val) _switchWorkspace('sales');
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const Divider(),
+
+              // DEDICATED ITEMS BASED ON ACTIVE WORKSPACE
+              if (workspace == 'ducanh') ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Text(
+                    'CHỨC NĂNG CỦA ĐỨC ANH (7 MÀN HÌNH)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryBlue,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.dashboard_outlined),
+                  title: const Text('1. Dashboard Quản Trị'),
+                  selected: safeIndex == 0,
+                  onTap: () {
                     Navigator.pop(context);
-                    showLogoutConfirmation(context, ref);
+                    _setIndex(0);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.people_outline),
+                  title: const Text('2. Quản Lý Nhân Viên (FR-30)'),
+                  selected: safeIndex == 1,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(1);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person_add_outlined),
+                  title: const Text('3. Thêm/Sửa Tài Khoản Nhân Viên'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StaffFormScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.bar_chart_outlined),
+                  title: const Text('4. Báo Cáo Doanh Thu & Xuất CSV (UC-2.6)'),
+                  selected: safeIndex == 2,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(2);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.assignment_return_outlined),
+                  title: const Text('5. Phê Duyệt Đổi Trả & Hoàn Tiền (FR-26)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ReturnApprovalScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.storefront_outlined),
+                  title: const Text('6. Cài Đặt Cửa Hàng & Hóa Đơn'),
+                  selected: safeIndex == 3,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(3);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.local_offer_outlined),
+                  title: const Text('7. Quản Lý Khuyến Mãi & Voucher'),
+                  selected: safeIndex == 4,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(4);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.security),
+                  title: const Text('8. Nhật Ký Kiểm Toán (FR-31)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AuditHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: const Text('9. Xác Thực Bảo Mật & Lockout (BR-12)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Xác thực SHA-256 & Chính sách khóa 15 phút (BR-12) đang hoạt động!',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ] else if (workspace == 'minh') ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Text(
+                    'CHỨC NĂNG CỦA MINH (7 MÀN HÌNH)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.category_outlined),
+                  title: const Text('1. Danh Mục Loại Máy & Linh Kiện'),
+                  selected: safeIndex == 0,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(0);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.add_box_outlined),
+                  title: const Text('2. Thêm/Sửa Danh Mục (FR-05)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CategoryFormScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.business_outlined),
+                  title: const Text('3. Danh Sách Nhà Cung Cấp (FR-09)'),
+                  selected: safeIndex == 1,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(1);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.add_business_outlined),
+                  title: const Text('4. Thêm Nhà Cung Cấp Mới'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SupplierFormScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.people_outline),
+                  title: const Text('5. Danh Bạ Khách Hàng (FR-15)'),
+                  selected: safeIndex == 2,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(2);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person_add_alt),
+                  title: const Text('6. Đăng Ký Khách Hàng Mới'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CustomerFormScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.card_giftcard),
+                  title: const Text('7. Tích Điểm Thành Viên (BR-08)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(2);
+                  },
+                ),
+              ] else if (workspace == 'truong') ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Text(
+                    'CHỨC NĂNG CỦA TRƯỜNG (7 MÀN HÌNH)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.laptop_chromebook),
+                  title: const Text('1. Kho Laptop & PC (FR-06, FR-08)'),
+                  selected: safeIndex == 0,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(0);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.add_circle_outline),
+                  title: const Text('2. Thêm Mới Thiết Bị (Specs JSON)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ProductFormScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.receipt_long),
+                  title: const Text('3. Danh Sách Phiếu Nhập Kho (FR-10)'),
+                  selected: safeIndex == 1,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(1);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.post_add),
+                  title: const Text('4. Lập Phiếu Nhập Kho Mới (FR-11)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateStockReceiptScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.tune),
+                  title: const Text('5. Kiểm Kê & Điều Chỉnh Tồn (FR-12)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StockAdjustmentScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.history),
+                  title: const Text('6. Sổ Thẻ Kho Biến Động (FR-13)'),
+                  selected: safeIndex == 2,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(2);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.warning_amber),
+                  title: const Text('7. Cảnh Báo Tồn Kho Tối Thiểu (FR-14)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(2);
+                  },
+                ),
+              ] else if (workspace == 'sales') ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Text(
+                    'CHỨC NĂNG CỦA TRƯƠNG (7 MÀN HÌNH)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.emeraldGreen,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.add_shopping_cart),
+                  title: const Text('1. Bán Hàng POS (FR-16, FR-17)'),
+                  selected: safeIndex == 0,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(0);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.point_of_sale),
+                  title: const Text('2. Danh Sách Hóa Đơn Bán Lẻ (FR-23)'),
+                  selected: safeIndex == 1,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(1);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.assignment_return_outlined),
+                  title: const Text('3. Yêu Cầu Đổi Trả 7 Ngày (FR-24)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SalesReturnRequestScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.gavel),
+                  title: const Text('4. Phê Duyệt Đổi Trả (FR-26)'),
+                  selected: safeIndex == 2,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(2);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.bar_chart),
+                  title: const Text('5. Báo Cáo Doanh Thu (FR-27)'),
+                  selected: safeIndex == 3,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(3);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.download),
+                  title: const Text('6. Xuất Dữ Liệu Báo Cáo Ra CSV'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(3);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.verified_outlined),
+                  title: const Text('7. Tra Cứu Bảo Hành & Hóa Đơn (FR-33)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _setIndex(1);
                   },
                 ),
               ],
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Text(
-                  ownerName.isNotEmpty ? ownerName.split(' ').last[0] : 'U',
-                  style: TextStyle(
-                    color: themeColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              accountName: Text(
-                user?.fullName ?? ownerName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              accountEmail: Text(
-                'Phân hệ: $workspaceTitle ($ownerName)',
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ),
 
-            // Cloud BaaS alert preview
-            StreamBuilder<String>(
-              stream: FirebaseCloudService.instance.realTimeCloudAlerts,
-              builder: (ctx, snap) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 6,
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.cloud_done,
-                        size: 18,
-                        color: AppTheme.accentCyan,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          snap.data ?? 'Hệ thống Cloud BaaS: Trực tuyến',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.primaryBlue,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            // Switcher for switching between member workspaces (Preview/Review)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'CHUYỂN PHÂN HỆ THÀNH VIÊN (REVIEW):',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      ChoiceChip(
-                        label: const Text(
-                          '1. Đức Anh',
-                          style: TextStyle(fontSize: 11),
-                        ),
-                        selected: workspace == 'ducanh',
-                        onSelected: (val) {
-                          if (val) _switchWorkspace('ducanh');
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text(
-                          '2. Minh',
-                          style: TextStyle(fontSize: 11),
-                        ),
-                        selected: workspace == 'minh',
-                        onSelected: (val) {
-                          if (val) _switchWorkspace('minh');
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text(
-                          '3. Trường',
-                          style: TextStyle(fontSize: 11),
-                        ),
-                        selected: workspace == 'truong',
-                        onSelected: (val) {
-                          if (val) _switchWorkspace('truong');
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text(
-                          '4. Trương',
-                          style: TextStyle(fontSize: 11),
-                        ),
-                        selected: workspace == 'sales',
-                        onSelected: (val) {
-                          if (val) _switchWorkspace('sales');
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(),
-
-            // DEDICATED ITEMS BASED ON ACTIVE WORKSPACE
-            if (workspace == 'ducanh') ...[
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  'CHỨC NĂNG CỦA ĐỨC ANH (7 MÀN HÌNH)',
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text(
+                  'Đăng Xuất (UC-02)',
                   style: TextStyle(
-                    fontSize: 11,
+                    color: Colors.red,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryBlue,
                   ),
                 ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.dashboard_outlined),
-                title: const Text('1. Dashboard Quản Trị'),
-                selected: safeIndex == 0,
                 onTap: () {
                   Navigator.pop(context);
-                  setState(() => _currentIndex = 0);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.people_outline),
-                title: const Text('2. Quản Lý Nhân Viên (FR-30)'),
-                selected: safeIndex == 1,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 1);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_add_outlined),
-                title: const Text('3. Thêm/Sửa Tài Khoản Nhân Viên'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const StaffFormScreen()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.bar_chart_outlined),
-                title: const Text('4. Báo Cáo Doanh Thu & Xuất CSV (UC-2.6)'),
-                selected: safeIndex == 2,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 2);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.storefront_outlined),
-                title: const Text('5. Cài Đặt Cửa Hàng & Hóa Đơn'),
-                selected: safeIndex == 3,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 3);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.local_offer_outlined),
-                title: const Text('6. Quản Lý Khuyến Mãi & Voucher'),
-                selected: safeIndex == 4,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 4);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.security),
-                title: const Text('7. Nhật Ký Kiểm Toán (FR-31)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AuditHistoryScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.lock_outline),
-                title: const Text('8. Xác Thực Bảo Mật & Lockout (BR-12)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Xác thực SHA-256 & Chính sách khóa 15 phút (BR-12) đang hoạt động!',
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ] else if (workspace == 'minh') ...[
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  'CHỨC NĂNG CỦA MINH (7 MÀN HÌNH)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.teal,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.category_outlined),
-                title: const Text('1. Danh Mục Loại Máy & Linh Kiện'),
-                selected: safeIndex == 0,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 0);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.add_box_outlined),
-                title: const Text('2. Thêm/Sửa Danh Mục (FR-05)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CategoryFormScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.business_outlined),
-                title: const Text('3. Danh Sách Nhà Cung Cấp (FR-09)'),
-                selected: safeIndex == 1,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 1);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.add_business_outlined),
-                title: const Text('4. Thêm Nhà Cung Cấp Mới'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SupplierFormScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.people_outline),
-                title: const Text('5. Danh Bạ Khách Hàng (FR-15)'),
-                selected: safeIndex == 2,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 2);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_add_alt),
-                title: const Text('6. Đăng Ký Khách Hàng Mới'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CustomerFormScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.card_giftcard),
-                title: const Text('7. Tích Điểm Thành Viên (BR-08)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 2);
-                },
-              ),
-            ] else if (workspace == 'truong') ...[
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  'CHỨC NĂNG CỦA TRƯỜNG (7 MÀN HÌNH)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.laptop_chromebook),
-                title: const Text('1. Kho Laptop & PC (FR-06, FR-08)'),
-                selected: safeIndex == 0,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 0);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.add_circle_outline),
-                title: const Text('2. Thêm Mới Thiết Bị (Specs JSON)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ProductFormScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.receipt_long),
-                title: const Text('3. Danh Sách Phiếu Nhập Kho (FR-10)'),
-                selected: safeIndex == 1,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 1);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.post_add),
-                title: const Text('4. Lập Phiếu Nhập Kho Mới (FR-11)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CreateStockReceiptScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.tune),
-                title: const Text('5. Kiểm Kê & Điều Chỉnh Tồn (FR-12)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const StockAdjustmentScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.history),
-                title: const Text('6. Sổ Thẻ Kho Biến Động (FR-13)'),
-                selected: safeIndex == 2,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 2);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.warning_amber),
-                title: const Text('7. Cảnh Báo Tồn Kho Tối Thiểu (FR-14)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 2);
-                },
-              ),
-            ] else if (workspace == 'sales') ...[
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  'CHỨC NĂNG CỦA TRƯƠNG (7 MÀN HÌNH)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.emeraldGreen,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.add_shopping_cart),
-                title: const Text('1. Bán Hàng POS (FR-16, FR-17)'),
-                selected: safeIndex == 0,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 0);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.point_of_sale),
-                title: const Text('2. Danh Sách Hóa Đơn Bán Lẻ (FR-23)'),
-                selected: safeIndex == 1,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 1);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.assignment_return_outlined),
-                title: const Text('3. Yêu Cầu Đổi Trả 7 Ngày (FR-24)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SalesReturnRequestScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.gavel),
-                title: const Text('4. Phê Duyệt Đổi Trả (FR-26)'),
-                selected: safeIndex == 2,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 2);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.bar_chart),
-                title: const Text('5. Báo Cáo Doanh Thu (FR-27)'),
-                selected: safeIndex == 3,
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 3);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.download),
-                title: const Text('6. Xuất Dữ Liệu Báo Cáo Ra CSV'),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 3);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.verified_outlined),
-                title: const Text('7. Tra Cứu Bảo Hành & Hóa Đơn (FR-33)'),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _currentIndex = 1);
+                  showLogoutConfirmation(context, ref);
                 },
               ),
             ],
-
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                'Đăng Xuất (UC-02)',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                showLogoutConfirmation(context, ref);
-              },
-            ),
-          ],
+          ),
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: safeIndex,
-        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-        destinations: destinations,
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: safeIndex,
+          onDestinationSelected: (idx) => _setIndex(idx),
+          destinations: destinations,
+        ),
       ),
     );
   }

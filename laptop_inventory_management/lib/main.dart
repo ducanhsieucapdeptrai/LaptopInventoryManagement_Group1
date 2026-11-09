@@ -18,12 +18,11 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
 
-  // Pre-initialize local SQLite database with seeds
-  try {
-    await DatabaseHelper.instance.database;
-  } catch (e) {
+  // Pre-initialize local SQLite database with seeds asynchronously
+  DatabaseHelper.instance.database.catchError((e) {
     debugPrint('Database initialization notice: $e');
-  }
+    throw e;
+  });
 
   runApp(const ProviderScope(child: LaptopInventoryApp()));
 }
