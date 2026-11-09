@@ -158,6 +158,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
         currentTabs = const [
           DashboardScreen(),
           StaffListScreen(),
+          ReportsScreen(),
           StoreSettingsScreen(),
           PromotionListScreen(),
         ];
@@ -171,6 +172,11 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
             icon: Icon(Icons.people_outline),
             selectedIcon: Icon(Icons.people),
             label: 'Nhân Viên',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'Báo Cáo CSV',
           ),
           NavigationDestination(
             icon: Icon(Icons.storefront_outlined),
@@ -385,8 +391,8 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.storefront_outlined),
-                title: const Text('4. Cài Đặt Cửa Hàng & Hóa Đơn'),
+                leading: const Icon(Icons.bar_chart_outlined),
+                title: const Text('4. Báo Cáo Doanh Thu & Xuất CSV (UC-2.6)'),
                 selected: safeIndex == 2,
                 onTap: () {
                   Navigator.pop(context);
@@ -394,8 +400,8 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.local_offer_outlined),
-                title: const Text('5. Quản Lý Khuyến Mãi & Voucher'),
+                leading: const Icon(Icons.storefront_outlined),
+                title: const Text('5. Cài Đặt Cửa Hàng & Hóa Đơn'),
                 selected: safeIndex == 3,
                 onTap: () {
                   Navigator.pop(context);
@@ -403,8 +409,17 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.local_offer_outlined),
+                title: const Text('6. Quản Lý Khuyến Mãi & Voucher'),
+                selected: safeIndex == 4,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 4);
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.security),
-                title: const Text('6. Nhật Ký Kiểm Toán (FR-31)'),
+                title: const Text('7. Nhật Ký Kiểm Toán (FR-31)'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -417,7 +432,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.lock_outline),
-                title: const Text('7. Xác Thực Bảo Mật & Lockout (BR-12)'),
+                title: const Text('8. Xác Thực Bảo Mật & Lockout (BR-12)'),
                 onTap: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

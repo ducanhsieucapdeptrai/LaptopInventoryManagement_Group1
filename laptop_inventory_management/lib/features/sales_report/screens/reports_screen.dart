@@ -105,7 +105,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: const DrawerMenuButton(),
-        title: const Text('Báo Cáo & Phân Tích (Trương)'),
+        title: const Text('Báo Cáo Doanh Thu & Xuất CSV (UC-2.6)'),
         actions: [
           IconButton(
             icon: const Icon(Icons.file_download_outlined),

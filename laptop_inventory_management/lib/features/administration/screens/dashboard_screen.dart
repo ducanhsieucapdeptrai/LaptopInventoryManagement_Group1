@@ -13,6 +13,7 @@ import 'audit_history_screen.dart';
 import 'promotion_list_screen.dart';
 import 'staff_list_screen.dart';
 import 'store_settings_screen.dart';
+import '../../sales_report/screens/reports_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -63,6 +64,16 @@ class DashboardScreen extends ConsumerWidget {
         leading: const DrawerMenuButton(),
         title: const Text('Tổng Quan Quản Trị (Đức Anh)'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart_outlined),
+            tooltip: 'Báo cáo doanh thu & Xuất CSV (UC-2.6)',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReportsScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.storefront_outlined),
             tooltip: 'Cài đặt cửa hàng & Hóa đơn',
@@ -187,6 +198,31 @@ class DashboardScreen extends ConsumerWidget {
               Card(
                 child: Column(
                   children: [
+                    ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: Color(0xFFDCFCE7),
+                        child: Icon(
+                          Icons.bar_chart,
+                          color: AppTheme.emeraldGreen,
+                        ),
+                      ),
+                      title: const Text(
+                        'Báo cáo doanh thu & Xuất file CSV (UC-2.6, FR-29)',
+                      ),
+                      subtitle: const Text(
+                        'Xem chi tiết doanh thu, lợi nhuận gộp, top laptop và xuất CSV',
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ReportsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1),
                     ListTile(
                       leading: const CircleAvatar(
                         backgroundColor: Color(0xFFE0E7FF),

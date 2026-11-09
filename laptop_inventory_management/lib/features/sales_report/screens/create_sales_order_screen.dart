@@ -117,11 +117,6 @@ class _CreateSalesOrderScreenState
           .showSnackBar(const SnackBar(content: Text(SystemMessages.msg06)));
       return;
     }
-    if (_discountPercent > BusinessRules.maxSalesStaffDiscountPercent) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text(SystemMessages.msg09)));
-      return;
-    }
 
     try {
       final db = await DatabaseHelper.instance.database;
@@ -178,15 +173,49 @@ class _CreateSalesOrderScreenState
       );
 
       if (toPayment) {
-        Navigator.pushReplacement(
+        final paid = await Navigator.push<bool>(
           context,
-          MaterialPageRoute(builder: (_) => PaymentScreen(order: createdOrder)),
+          MaterialPageRoute(
+            builder: (_) =>
+                PaymentScreen(order: createdOrder, isNewOrder: true),
+          ),
         );
+
+        if (paid == true) {
+          setState(() {
+            _cart.clear();
+            _selectedCustomer = null;
+            _isWalkIn = true;
+            _discountController.text = '0';
+            _notesController.clear();
+          });
+          await _loadData();
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Đã quay lại giỏ hàng để bạn chỉnh sửa đơn.'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Đã lưu đơn đang xử lý #$orderId')),
         );
-        Navigator.pop(context);
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          setState(() {
+            _cart.clear();
+            _selectedCustomer = null;
+            _isWalkIn = true;
+            _discountController.text = '0';
+            _notesController.clear();
+          });
+          await _loadData();
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -590,14 +619,6 @@ class _CreateSalesOrderScreenState
                               suffixText: '%',
                             ),
                             onChanged: (_) => setState(() {}),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '(Tối đa: 10% Sales, 30% Admin BR-07)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade600,
                           ),
                         ),
                       ],
