@@ -14,7 +14,7 @@ import 'promotion_list_screen.dart';
 import 'staff_list_screen.dart';
 import 'store_settings_screen.dart';
 import '../../sales_reports/screens/reports_screen.dart';
-import '../../sales_report/screens/return_approval_screen.dart';
+import '../../sales_reports/screens/return_approval_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
